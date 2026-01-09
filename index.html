@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Files Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        h1 {
+            color: #f0f6fc;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #8b949e;
+            font-size: 1rem;
+        }
+
+        .controls {
+            background-color: #161b22;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #30363d;
+        }
+
+        .status-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .repo-status {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .last-updated {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #f85149;
+        }
+
+        .status-dot.active {
+            background-color: #3fb950;
+        }
+
+        .status-dot.loading {
+            background-color: #d29922;
+        }
+
+        .refresh-btn {
+            background-color: #238636;
+            color: white;
+            border: 1px solid #238636;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+            background-color: #2ea043;
+            border-color: #2ea043;
+        }
+
+        .breadcrumb {
+            background-color: #161b22;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb-link {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .breadcrumb-link:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #8b949e;
+        }
+
+        .current-folder {
+            font-weight: 500;
+            color: #f0f6fc;
+        }
+
+        .files-table-container {
+            background-color: #161b22;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 40px 2fr 1fr 1fr 150px;
+            padding: 15px 20px;
+            background-color: #21262d;
+            border-bottom: 1px solid #30363d;
+            font-weight: 600;
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 40px 2fr 1fr 1fr 150px;
+            padding: 15px 20px;
+            border-bottom: 1px solid #30363d;
+            transition: background-color 0.2s ease;
+            align-items: center;
+        }
+
+        .table-row:hover {
+            background-color: #1c2128;
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .file-icon {
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .folder-icon {
+            color: #58a6ff;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #f0f6fc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 10px;
+            cursor: pointer;
+        }
+
+        .folder-name {
+            color: #58a6ff;
+        }
+
+        .file-name:hover, .folder-name:hover {
+            text-decoration: underline;
+        }
+
+        .file-size {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        .file-date {
+            color: #8b949e;
+            font-size: 0.85rem;
+        }
+
+        .download-link {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s ease;
+        }
+
+        .download-link:hover {
+            color: #79c0ff;
+            text-decoration: underline;
+        }
+
+        .folder-link {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .folder-link:hover {
+            color: #79c0ff;
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .loading-spinner {
+            border: 3px solid #30363d;
+            border-top: 3px solid #58a6ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+            color: #8b949e;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            grid-column: 1 / -1;
+            color: #f85149;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #8b949e;
+            font-size: 0.85rem;
+            padding-top: 20px;
+            border-top: 1px solid #30363d;
+        }
+
+        .api-info {
+            background-color: #21262d;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #8b949e;
+            border-left: 3px solid #d29922;
+        }
+
+        @media (max-width: 768px) {
+            .table-header, .table-row {
+                grid-template-columns: 30px 1fr 80px 90px 40px;
+                padding: 12px 15px;
+                font-size: 0.85rem;
+            }
+            
+            .file-name {
+                font-size: 0.9rem;
+            }
+            
+            .download-link span, .folder-link span {
+                display: none;
+            }
+            
+            .status-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .table-header, .table-row {
+                grid-template-columns: 25px 1fr 70px;
+                gap: 10px;
+            }
+            
+            .table-header > div:nth-child(4),
+            .table-row > div:nth-child(4) {
+                display: none;
+            }
+            
+            .table-header > div:nth-child(5),
+            .table-row > div:nth-child(5) {
+                grid-column: 3;
+                text-align: center;
+            }
+            
+            .refresh-btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GitHub Files Repository</h1>
+            <p class="subtitle">Direct access to files stored in your GitHub repository</p>
+        </header>
+        
+        <div class="controls">
+            <div class="status-info">
+                <div>
+                    <div class="repo-status">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="repo-status">Loading repository...</span>
+                    </div>
+                    <div class="last-updated">Last updated: <span id="last-updated">-</span></div>
+                </div>
+                
+                <button id="refresh-btn" class="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Refresh Files
+                </button>
+            </div>
+        </div>
+        
+        <div class="breadcrumb" id="breadcrumb">
+            <div class="breadcrumb-item">
+                <a class="breadcrumb-link" onclick="navigateToPath('')">Home</a>
+            </div>
+        </div>
+        
+        <div class="files-table-container">
+            <div class="table-header">
+                <div></div>
+                <div>Name</div>
+                <div>Size</div>
+                <div>Date Added</div>
+                <div>Action</div>
+            </div>
+            
+            <div id="files-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading files from GitHub repository...</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Files update automatically when you push new commits to your GitHub repository</p>
+            <p id="api-info" class="api-info" style="display: none;">
+                <i class="fas fa-info-circle"></i> 
+                <span id="api-message"></span>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration - UPDATE THESE VALUES FOR YOUR REPOSITORY
+        const CONFIG = {
+            // Your GitHub username and repository name
+            username: 'Cai-Kunkun',
+            repo: 'Videos',
+            // Branch to fetch files from
+            branch: 'master',
+            // GitHub API token (optional, for private repos or higher rate limits)
+            // Get one at: https://github.com/settings/tokens (no scopes needed for public repos)
+            token: '',
+            // Path in repository where files are stored (leave empty for root)
+            path: '',
+            // Enable/disable commit date fetching (can cause rate limits)
+            fetchCommitDates: false
+        };
+        
+        // DOM Elements
+        const filesList = document.getElementById('files-list');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const lastUpdatedElement = document.getElementById('last-updated');
+        const repoStatusElement = document.getElementById('repo-status');
+        const statusDot = document.getElementById('status-dot');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const apiInfo = document.getElementById('api-info');
+        const apiMessage = document.getElementById('api-message');
+        
+        // State variables
+        let currentPath = CONFIG.path || '';
+        let files = [];
+        let folders = [];
+        let lastUpdateTime = null;
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load files from GitHub
+            loadFiles();
+            
+            // Set up refresh button
+            refreshBtn.addEventListener('click', loadFiles);
+        });
+        
+        // Function to load files from GitHub repository
+        async function loadFiles() {
+            try {
+                showLoading();
+                updateStatus('loading', 'Fetching files...');
+                hideApiInfo();
+                
+                // Build API URL
+                let apiUrl = `https://api.github.com/repos/${CONFIG.username}/${CONFIG.repo}/contents`;
+                if (currentPath) {
+                    apiUrl += `/${currentPath}`;
+                }
+                apiUrl += `?ref=${CONFIG.branch}`;
+                
+                // Prepare headers
+                const headers = {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'GitHub-File-Browser/1.0'
+                };
+                
+                // Add token if provided
+                if (CONFIG.token) {
+                    headers['Authorization'] = `token ${CONFIG.token}`;
+                }
+                
+                // Fetch files from GitHub API
+                const response = await fetch(apiUrl, { headers });
+                
+                // Check rate limit headers
+                const remaining = response.headers.get('X-RateLimit-Remaining');
+                const limit = response.headers.get('X-RateLimit-Limit');
+                
+                if (remaining && parseInt(remaining) < 10) {
+                    showApiInfo(`API rate limit: ${remaining}/${limit} requests remaining. Add a GitHub token for higher limits.`);
+                }
+                
+                if (!response.ok) {
+                    // Handle 403 rate limit specifically
+                    if (response.status === 403) {
+                        const resetTime = response.headers.get('X-RateLimit-Reset');
+                        if (resetTime) {
+                            const resetDate = new Date(resetTime * 1000);
+                            const now = new Date();
+                            const minutesUntilReset = Math.ceil((resetDate - now) / 60000);
+                            
+                            throw new Error(`GitHub API rate limit exceeded. Try again in ${minutesUntilReset} minutes or add a GitHub token.`);
+                        } else {
+                            throw new Error(`GitHub API rate limit exceeded. Add a GitHub token for higher limits.`);
+                        }
+                    }
+                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Handle case where data is not an array (single file or error)
+                if (!Array.isArray(data)) {
+                    if (data.message) {
+                        throw new Error(data.message);
+                    }
+                    throw new Error('Unexpected response from GitHub API');
+                }
+                
+                // Separate files and folders
+                files = data.filter(item => item.type === 'file');
+                folders = data.filter(item => item.type === 'dir');
+                
+                // Update breadcrumb
+                updateBreadcrumb();
+                
+                // Only fetch commit dates if enabled (this causes rate limits)
+                if (CONFIG.fetchCommitDates && files.length > 0) {
+                    await getCommitDatesForFiles();
+                }
+                
+                // Update UI
+                updateLastUpdatedTime();
+                renderFileList();
+                updateStatus('active', `Loaded ${folders.length} folder${folders.length !== 1 ? 's' : ''} and ${files.length} file${files.length !== 1 ? 's' : ''}`);
+                
+            } catch (error) {
+                console.error('Error loading files:', error);
+                updateStatus('error', `Error: ${error.message}`);
+                
+                // Show error in file list
+                filesList.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <h3 style="margin-bottom: 10px;">Error Loading Files</h3>
+                        <p>${error.message}</p>
+                        <div style="margin-top: 15px; font-size: 0.9rem;">
+                            <p><strong>Possible solutions:</strong></p>
+                            <ul style="text-align: left; max-width: 500px; margin: 10px auto;">
+                                <li>Add a GitHub token in the CONFIG section (recommended)</li>
+                                <li>Wait a few minutes and refresh</li>
+                                <li>Make sure the repository is public</li>
+                                <li>Check repository name and username</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Function to update breadcrumb navigation
+        function updateBreadcrumb() {
+            let html = '<div class="breadcrumb-item"><a class="breadcrumb-link" onclick="navigateToPath(\'\')">Home</a></div>';
+            
+            if (currentPath) {
+                const pathParts = currentPath.split('/').filter(part => part !== '');
+                let accumulatedPath = '';
+                
+                pathParts.forEach((part, index) => {
+                    accumulatedPath += (accumulatedPath ? '/' : '') + part;
+                    const isLast = index === pathParts.length - 1;
+                    
+                    html += `<div class="breadcrumb-separator">/</div>`;
+                    
+                    if (isLast) {
+                        html += `<div class="breadcrumb-item"><span class="current-folder">${part}</span></div>`;
+                    } else {
+                        html += `<div class="breadcrumb-item"><a class="breadcrumb-link" onclick="navigateToPath('${accumulatedPath}')">${part}</a></div>`;
+                    }
+                });
+            }
+            
+            breadcrumb.innerHTML = html;
+        }
+        
+        // Function to navigate to a specific path
+        function navigateToPath(path) {
+            currentPath = path;
+            loadFiles();
+        }
+        
+        // Function to get commit dates for files (disabled by default due to rate limits)
+        async function getCommitDatesForFiles() {
+            // Skip if too many files (to avoid rate limits)
+            if (files.length > 20) {
+                console.log('Skipping commit date fetch for', files.length, 'files to avoid rate limits');
+                return;
+            }
+            
+            // Prepare headers
+            const headers = {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'GitHub-File-Browser/1.0'
+            };
+            
+            if (CONFIG.token) {
+                headers['Authorization'] = `token ${CONFIG.token}`;
+            }
+            
+            // Get commit dates for each file (with delay to avoid rate limits)
+            for (let [index, file] of files.entries()) {
+                try {
+                    // Add small delay between requests
+                    if (index > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    
+                    // Get commits for this specific file
+                    const filePath = currentPath ? `${currentPath}/${file.name}` : file.name;
+                    const commitApiUrl = `https://api.github.com/repos/${CONFIG.username}/${CONFIG.repo}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
+                    const commitResponse = await fetch(commitApiUrl, { headers });
+                    
+                    if (commitResponse.ok) {
+                        const commitData = await commitResponse.json();
+                        
+                        if (commitData.length > 0 && commitData[0].commit) {
+                            // Use the commit date
+                            file.commit_date = new Date(commitData[0].commit.committer.date);
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Could not get commit date for ${file.name}:`, error);
+                    // Don't fail the whole request for date errors
+                }
+            }
+        }
+        
+        // Function to render the file list
+        function renderFileList() {
+            if (folders.length === 0 && files.length === 0) {
+                filesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="far fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; color: #30363d;"></i>
+                        <h3 style="margin-bottom: 10px; color: #f0f6fc;">Empty Folder</h3>
+                        <p>No files or folders found in this directory.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            // Sort folders alphabetically
+            folders.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Render folders first
+            folders.forEach(folder => {
+                const folderPath = currentPath ? `${currentPath}/${folder.name}` : folder.name;
+                const safeFolderPath = folderPath.replace(/'/g, "\\'");
+                html += `
+                    <div class="table-row">
+                        <div class="file-icon folder-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="file-name folder-name" title="${folder.name}" onclick="navigateToPath('${safeFolderPath}')">
+                            ${folder.name}/
+                        </div>
+                        <div class="file-size">-</div>
+                        <div class="file-date">-</div>
+                        <div>
+                            <a class="folder-link" onclick="navigateToPath('${safeFolderPath}')">
+                                <i class="fas fa-folder-open"></i>
+                                <span>Open</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Sort files alphabetically (instead of by date to avoid API calls)
+            files.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Render files
+            files.forEach(file => {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const fileIcon = getFileIcon(fileExtension);
+                const fileSize = formatFileSize(file.size);
+                
+                // Format the date
+                let fileDate = 'Unknown';
+                if (file.commit_date) {
+                    fileDate = file.commit_date.toLocaleDateString();
+                } else if (file.created_at) {
+                    // GitHub API sometimes provides created_at
+                    fileDate = new Date(file.created_at).toLocaleDateString();
+                }
+                
+                const downloadUrl = file.download_url || file.html_url;
+                
+                html += `
+                    <div class="table-row">
+                        <div class="file-icon">${fileIcon}</div>
+                        <div class="file-name" title="${file.name}">${file.name}</div>
+                        <div class="file-size">${fileSize}</div>
+                        <div class="file-date">${fileDate}</div>
+                        <div>
+                            <a href="${downloadUrl}" class="download-link" target="_blank" download="${file.name}">
+                                <i class="fas fa-download"></i>
+                                <span>Download</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            filesList.innerHTML = html;
+        }
+        
+        // Function to show loading state
+        function showLoading() {
+            filesList.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading files from GitHub repository...</p>
+                </div>
+            `;
+        }
+        
+        // Function to update status
+        function updateStatus(type, message) {
+            repoStatusElement.textContent = message;
+            statusDot.className = 'status-dot';
+            
+            switch(type) {
+                case 'active':
+                    statusDot.classList.add('active');
+                    break;
+                case 'loading':
+                    statusDot.classList.add('loading');
+                    break;
+                case 'error':
+                    // Keep default red color
+                    break;
+            }
+        }
+        
+        // Function to update last updated time
+        function updateLastUpdatedTime() {
+            lastUpdateTime = new Date();
+            lastUpdatedElement.textContent = lastUpdateTime.toLocaleTimeString();
+        }
+        
+        // Function to show API info
+        function showApiInfo(message) {
+            apiMessage.textContent = message;
+            apiInfo.style.display = 'block';
+        }
+        
+        // Function to hide API info
+        function hideApiInfo() {
+            apiInfo.style.display = 'none';
+        }
+        
+        // Function to get appropriate icon for file type
+        function getFileIcon(extension) {
+            const iconMap = {
+                'pdf': '📄',
+                'doc': '📝',
+                'docx': '📝',
+                'txt': '📃',
+                'zip': '📦',
+                'rar': '📦',
+                '7z': '📦',
+                'jpg': '🖼️',
+                'jpeg': '🖼️',
+                'png': '🖼️',
+                'gif': '🖼️',
+                'mp4': '🎥',
+                'avi': '🎥',
+                'mov': '🎥',
+                'mkv': '🎥',
+                'webm': '🎥',
+                'mp3': '🎵',
+                'wav': '🎵',
+                'flac': '🎵',
+                'exe': '⚙️',
+                'msi': '⚙️',
+                'apk': '📱',
+                'iso': '💿',
+                'dmg': '💿'
+            };
+            
+            return iconMap[extension] || '📁';
+        }
+        
+        // Function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
